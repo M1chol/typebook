@@ -30,6 +30,9 @@ export default function HiddenInput({
         if (onActivateIfNeeded) onActivateIfNeeded()
         onChange(e.target.value)
       }}
+      onBlur={() => {
+        if (enabled) inputRef.current?.focus()
+      }}
       className="sr-only"
       autoComplete="off"
       autoCapitalize="off"

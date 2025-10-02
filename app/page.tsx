@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useMemo } from "react"
 import { Book, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import SearchBox from "@/components/typing/SearchBox"
@@ -19,7 +19,8 @@ export default function TypingPracticePage() {
 
   const [wordMode, setWordMode] = useState<WordMode>(50)
   const [fullBookText, setFullBookText] = useState("")
-  const [textOffset, setTextOffset] = useState(0)
+  const [words, setWords] = useState<string[]>([])
+  const [pageIndex, setPageIndex] = useState<number>(0)
   const [text, setText] = useState("")
 
   const [userInput, setUserInput] = useState("")
@@ -28,16 +29,19 @@ export default function TypingPracticePage() {
   const [timeElapsed, setTimeElapsed] = useState(0)
   const [errors, setErrors] = useState(0)
 
-  // Build visible chunk whenever underlying text or offset/mode changes
+  const currentPageText = useMemo(() => {
+    const start = pageIndex * wordMode
+    const end = start + wordMode
+    return words.slice(start, end).join(" ")
+  }, [words, pageIndex, wordMode])
+
   useEffect(() => {
     if (!fullBookText) {
       setText("")
       return
     }
-    const words = fullBookText.split(/\s+/).filter((w) => w.length > 0)
-    const limitedWords = words.slice(textOffset, textOffset + wordMode)
-    setText(limitedWords.join(" "))
-  }, [fullBookText, wordMode, textOffset])
+    setText(currentPageText)
+  }, [fullBookText, wordMode, pageIndex])
 
   // Timer
   useEffect(() => {
@@ -55,22 +59,20 @@ export default function TypingPracticePage() {
 
   // Auto advance to next chunk when finished
   useEffect(() => {
-    if (userInput.length >= text.length && text.length > 0 && isActive) {
-      setIsActive(false)
-      const words = fullBookText.split(/\s+/).filter((w) => w.length > 0)
-      if (textOffset + wordMode < words.length) {
+    if (userInput.length >= currentPageText.length && isActive) {
+      const maxPage = Math.floor(words.length / wordMode)
+      if (pageIndex < maxPage) {
         setTimeout(() => {
-          setTextOffset((prev) => prev + wordMode)
+          setPageIndex((prev) => prev + 1)
           setUserInput("")
-          setStartTime(null)
-          setTimeElapsed(0)
           setErrors(0)
           setIsActive(true)
-          setStartTime(Date.now())
         }, 500)
+      } else {
+        setIsActive(false) // Finished entire book
       }
     }
-  }, [userInput, text, isActive, fullBookText, textOffset, wordMode])
+  }, [userInput])
 
   const handleBookSelect = async (result: SearchResult) => {
     if (!result.url) return
@@ -86,12 +88,13 @@ export default function TypingPracticePage() {
       setStartTime(null)
       setTimeElapsed(0)
       setErrors(0)
-      setTextOffset(0)
 
       try {
         const { title, text } = await fetchBookText(slug)
         setBookTitle(title)
         setFullBookText(text)
+        setWords(text.split(/\s+/).filter(Boolean))
+        setPageIndex(0)
       } catch (e) {
         console.error("Error fetching book text:", e)
         setFullBookText("Error loading book text. Please try another book.")
@@ -128,13 +131,13 @@ export default function TypingPracticePage() {
     setErrors(errorCount)
   }
 
-  const calculateWPM = () => {
-    if (timeElapsed === 0) return 0
-    const words = userInput.trim().length
-      ? userInput.trim().split(/\s+/).length
-      : 0
-    return Math.round((words / timeElapsed) * 60)
-  }
+  // const calculateWPM = () => {
+  //   if (timeElapsed === 0) return 0
+  //   const words = userInput.trim().length
+  //     ? userInput.trim().split(/\s+/).length
+  //     : 0
+  //   return Math.round((words / timeElapsed) * 60)
+  // }
 
   const calculateAccuracy = () => {
     if (userInput.length === 0) return 100
@@ -145,10 +148,7 @@ export default function TypingPracticePage() {
     setWordMode(mode)
     setUserInput("")
     setIsActive(false)
-    setStartTime(null)
-    setTimeElapsed(0)
     setErrors(0)
-    setTextOffset(0)
   }
 
   return (
@@ -211,7 +211,9 @@ export default function TypingPracticePage() {
                 typedChars={userInput.length}
                 totalChars={text.length}
                 accuracy={calculateAccuracy()}
-                wpm={calculateWPM()}
+                wpm={0}
+                page={pageIndex}
+                pagesTotal={Math.floor(words.length / wordMode)}
               />
 
               {!isActive && userInput.length > 0 && (

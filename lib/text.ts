@@ -12,9 +12,6 @@ export const processPlainText = (rawText: string): string => {
   const paragraphs = rawText
     .split(/\n\s*\n/)
     .map((p) => p.trim())
-    .filter((p) => p.length > 0)
-    .filter((p) => !p.match(/^[A-Z\s]+$/) && p.length > 20)
-    .slice(0, 5)
     .join(" ")
 
   return normalizeWhitespace(paragraphs)
@@ -25,8 +22,6 @@ export const processHtmlToText = (html: string): string => {
   const doc = parser.parseFromString(html, "text/html")
   const paragraphs = Array.from(doc.querySelectorAll("p"))
     .map((p) => p.textContent?.trim())
-    .filter((p) => p && p.length > 20)
-    .slice(0, 5)
     .join(" ")
   return normalizeWhitespace(paragraphs)
 }
