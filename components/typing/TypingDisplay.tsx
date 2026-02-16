@@ -7,9 +7,9 @@ type Props = {
 
 export default function TypingDisplay({ text, userInput }: Props) {
   return (
-    <div className="relative mb-8 p-8 rounded-lg bg-card border border-border h-[280px] flex items-center justify-center">
+    <div className="relative mb-8 p-8 rounded-lg bg-card border border-border min-h-[350px] flex items-start justify-center">
       <div className="text-2xl leading-relaxed font-mono max-w-3xl">
-        <p className="text-balance">
+        <p className="">
           {text.split("").map((char, index) => {
             let className = "text-muted-foreground"
             if (index < userInput.length) {
@@ -18,7 +18,7 @@ export default function TypingDisplay({ text, userInput }: Props) {
                   ? "text-foreground"
                   : "text-red-500 bg-red-500/20"
             } else if (index === userInput.length) {
-              className = "text-foreground border-l-2 border-primary"
+              className = "text-muted-foreground border-l-2 border-primary"
             }
             return (
               <span key={index} className={className}>
