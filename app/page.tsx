@@ -360,7 +360,7 @@ export default function TypingPracticePage() {
                       key={slug}
                       variant="outline"
                       className="flex flex-col items-center justify-center p-4 h-auto text-center border-border rounded-lg shadow-md hover:shadow-lg transition-shadow"
-                      onClick={() => handleBookSelect({ title: progress.bookTitle, url: `/book/${slug}`, img: progress.coverPhotoUrl })}
+                      onClick={() => handleBookSelect({ type: 'book', label: progress.bookTitle, url: `/book/${slug}`, img: progress.coverPhotoUrl })}
                     >
                       {progress.coverPhotoUrl ? (
                         // eslint-disable-next-line @next/next/no-img-element
