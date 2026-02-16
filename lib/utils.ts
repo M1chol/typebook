@@ -5,11 +5,11 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-let lastCharWasSpace = true; // To track context for smart quotes
-
 export function applyCharacterSwaps(input: string): string {
   let result = "";
   let i = 0;
+  let lastCharWasSpace = true; // Make it local to this function call
+
   while (i < input.length) {
     // Em dash
     if (input.substring(i, i + 2) === "--") {
