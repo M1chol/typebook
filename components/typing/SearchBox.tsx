@@ -31,7 +31,17 @@ export default function SearchBox({ onSelect }: Props) {
         )
         const data: SearchResult[] = await resp.json()
         if (!active) return
-        setResults(data.filter((r) => r.type === "book"))
+
+        // Process images to ensure absolute URLs
+        const processedData = data.map(item => {
+          if (item.img && item.img.startsWith('/')) {
+            return { ...item, img: `https://wolnelektury.pl${item.img}` };
+          }
+          return item;
+        });
+
+        setResults(processedData.filter((r) => r.type === "book"));
+
       } catch (e) {
         if (active) setResults([])
         console.error("Search error:", e)
